@@ -40,7 +40,7 @@ for_get:	bge	$s1, $s2, exit_get	# if i>=n go to exit_for_get
 		j	for_get
 exit_get:	move	$a0, $sp		# $a0=base address af the array
 		move	$a1, $s2		# $a1=size of the array
-		#jal	isort			# isort(a,n)
+		jal	isort			# isort(a,n)
 						# In this moment the array has been 
 						# sorted and is in the stack frame 
 		la	$a0, str3		# Print of str3
@@ -61,6 +61,14 @@ for_print:	bge	$s1, $s2, exit_print	# if i>=n go to exit_print
 		addi	$s1, $s1, 1		# i=i+1
 		j	for_print
 exit_print:	add	$sp, $sp, $s0		# elimination of the stack frame 
-              
+              	
 		li	$v0, 10			# EXIT
 		syscall				#
+
+isort:		move	$t0, $zero		# t0 is i. Clear i
+isort_for:	beq	$t0, $a1, exit_sorti	# Exit is i is equal to the array size
+		addi 	$t0, $t0, 1		# Increase i by one
+		j	isort_for
+
+exit_sorti:	jr 	$ra
+		
