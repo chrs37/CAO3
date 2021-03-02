@@ -67,18 +67,37 @@ exit_print:	add	$sp, $sp, $s0		# elimination of the stack frame
 
 
 isort:		move	$t0, $zero		# i = 0
-		sll	$t1, $a1, 2		# $t0=i*4
-		add	$t1, $a0, $sp		# $t1=$sp+i*4
+		sll	$t1, $a1, 2		# $t0=n*4
+		sub 	$t1, $a0, $t1		# $t1=$sp-n*4	$t1 is the location of b[i]
 		# other setup
-isort_for:	beq	$t0, $a1, exit_sorti	# Loop for $a1 (array size) times
+isort_for:	beq	$t0, $a1, copy_array	# Loop for $a1 (array size) times
 		### BEGIN FOR LOOP ###
-
-
-
+		
+			# int position = binarySearch (b, i, a[i]);
+			# insert (b, i, a[i], position);
 		
 		### END FOR LOOP ##
 		addi 	$t0, $t0, 1		# i=i+1
 		j	isort_for		# Jump back to loop top
+
+		
+# Copys array b[] to a[]		
+copy_array:	move	$t0, $zero		# i = 0
+		addi 	$t2, $a0, 0		#$t2 = a[i]; $t1 = b[i]
+	
+copy_for:	beq	$t0, $a1, exit_sorti	# Loop for $a1 (array size) times
+		### BEGIN FOR LOOP ###
+		
+		
+		lw	$t3, 0($t1)		# $t3 = b[i]
+		sw	$t3, 0($t2)		# a[i] = $t3
+		
+		addi 	$t1, $t1, 4		#b[i+1]
+		addi 	$t2, $t2, 4		#a[i+1]
+		
+		### END FOR LOOP ##
+		addi 	$t0, $t0, 1		# i=i+1
+		j	copy_for		# Jump back to loop top
 
 exit_sorti:	jr 	$ra			# Retrun to main Program
 		
