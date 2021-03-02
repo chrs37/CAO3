@@ -65,10 +65,20 @@ exit_print:	add	$sp, $sp, $s0		# elimination of the stack frame
 		li	$v0, 10			# EXIT
 		syscall				#
 
-isort:		move	$t0, $zero		# t0 is i. Clear i
-isort_for:	beq	$t0, $a1, exit_sorti	# Exit is i is equal to the array size
-		addi 	$t0, $t0, 1		# Increase i by one
-		j	isort_for
 
-exit_sorti:	jr 	$ra
+isort:		move	$t0, $zero		# i = 0
+		sll	$t1, $a1, 2		# $t0=i*4
+		add	$t1, $a0, $sp		# $t1=$sp+i*4
+		# other setup
+isort_for:	beq	$t0, $a1, exit_sorti	# Loop for $a1 (array size) times
+		### BEGIN FOR LOOP ###
+
+
+
+		
+		### END FOR LOOP ##
+		addi 	$t0, $t0, 1		# i=i+1
+		j	isort_for		# Jump back to loop top
+
+exit_sorti:	jr 	$ra			# Retrun to main Program
 		
