@@ -138,6 +138,7 @@ exit_sorti:	move 	$ra, $s4		# Restore $RA
 		jr 	$ra			# Retrun to main Program
 		
 
+
 ### Binary Search ###
 # $a0 contains a[]
 # $a1 contains 'lenght'
@@ -159,3 +160,19 @@ bin_while: 	sub $t4, $t1, 1 	# $t4 = high -1
 		j bin_while
 	
 bin_return: 	jr $ra	
+
+ins:	lw	$t0, 0($a1)		# Assign length to temporary (assignment j = length)
+		subi	$t0, $t0,1		# j = j - 1
+		
+ins_for:	bge	$t0, $a3, ins_for_exit	#Brench if greater or equal then jump to end loop
+		sll	$t2, $t0, 2		#Determine adress in memory of a[j]
+		lw	$t3, 0($a0)		#Load content of memory place a[j] into t3
+		sw	$t2, 4($a0)		#Set memory of a[j+1] with content of t3 (thus a[k=j])
+		subi	$t0, $t0, 1		#j--
+		j	ins_for
+		
+ins_for_exit:	sll	$t2, $a3, 2		#Determine memory address of a[i]
+		sw	$a2, 0($t2)		#Load elem into memory address
+		jr	$ra			#return to caller
+
+		
