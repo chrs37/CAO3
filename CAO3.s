@@ -91,9 +91,12 @@ isort:		sub 	$sp, $sp, 16
 isort_for:	beq	$s3, $s2, isort_for_end 	# Loop for n ($s2) times
 		### BEGIN FOR LOOP ###
 		
-		# TEST CODE #		
-		sw	$s3, 0($t1)		# b[i] = $s3
-		addi 	$t1, $t1, 4		#b[i+1]	
+		# TEST CODE #
+		#sw	$s3, 0($t1)		# b[i] = $s3
+		#addi 	$t1, $t1, 4		#b[i+1]	
+		addi 	$a2, $zero, 5
+		addi 	$a3, $zero, 2
+		jal	ins	
 			# int position = binarySearch (b, i, a[i]);
 			# insert (b, i, a[i], position);
 		
@@ -129,19 +132,22 @@ exit_sorti:	sll	$t1, $a1, 2		# $t1=n*4
 		lw	$s3, 12($sp)		# restore s3
 		add 	$sp, $sp, 16		
 		jr 	$ra			# Retrun to main Program
-		
-ins:	lw	$t0, 0($a1)		# Assign length to temporary (assignment j = length)
+
+### Insert
+ins:		move	$t0, $a1		# Assign length to temporary (assignment j = length)
 		subi	$t0, $t0,1		# j = j - 1
 		
-ins_for:	bge	$t0, $a3, ins_for_exit	#Brench if greater or equal then jump to end loop
-		sll	$t2, $t0, 2		#Determine adress in memory of a[j]
-		lw	$t3, 0($a0)		#Load content of memory place a[j] into t3
-		sw	$t2, 4($a0)		#Set memory of a[j+1] with content of t3 (thus a[k=j])
+ins_for:	blt	$t0, $a3, ins_for_exit	#Brench if greater or equal then jump to end loop
 		subi	$t0, $t0, 1		#j--
+		sll	$t1, $t0, 2		#Determine adress in memory of a[j]
+		add	$t1, $a0, $t1		
+		lw	$t2, 0($t1)		#Load content of memory place a[j] into t2
+		sw	$t2, 4($t1)		#Set memory of a[j+1] with content of t2 (thus a[k=j])
 		j	ins_for
 		
-ins_for_exit:	sll	$t2, $a3, 2		#Determine memory address of a[i]
-		sw	$a2, 0($t2)		#Load elem into memory address
+ins_for_exit:	sll	$t1, $a3, 2		#Determine memory address of a[i]
+		add	$t1, $t1, $a0
+		sw	$a2, 0($t1)		#Load elem into memory address
 		jr	$ra			#return to caller
 
 		
