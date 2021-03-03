@@ -70,11 +70,13 @@ exit_print:	add	$sp, $sp, $s0		# elimination of the stack frame
 # $s1 location of b[0] on the stack
 # $s2 size n
 # $s3 counter for the array (i)
-isort:		sub 	$sp, $sp, 16
+# $s4 return address
+isort:		sub 	$sp, $sp, 20
 		sw 	$s0, 0($sp) 	# Save s0 to the stack
 		sw 	$s1, 4($sp) 	# Save s1 to the stack
 		sw 	$s2, 8($sp) 	# Save s2 to the stack
 		sw 	$s3, 12($sp) 	# Save s3 to the stack
+		sw 	$s4, 16($sp) 	# Save s4 to the stack
 
 		move 	$s0, $a0	# Store a[0] in $s0
 		move 	$s2, $a1	# Store n in $s2
@@ -83,10 +85,11 @@ isort:		sub 	$sp, $sp, 16
 		sll	$t0, $s2, 2	# $t0=n*4
 		sub	$sp, $sp, $t0	# Decrease the stack pointer by n*4
 		move 	$s1, $sp	# $s1=$sp, thus $s1 is b[0]	
+		move 	$s4, $ra
 		### END OF SETUP ###
 
 		# TEST CODE #
-		move 	$t1, $s1		# $t1 = b[0] 
+		move 	$t6, $s1		# $t1 = b[0] 
 
 isort_for:	beq	$s3, $s2, isort_for_end 	# Loop for n ($s2) times
 		### BEGIN FOR LOOP ###
@@ -109,7 +112,7 @@ isort_for_end: j copy_array
 ### The routine copy_array copies the content of array b[] (in $s1) to a[] (in $s0) ###	
 copy_array:	move	$s3, $zero		# i = 0
 		move 	$t1, $s1		# $t1 = b[0]
-		move 	$t2, $s0		# $t1 = b[0]
+		move 	$t2, $s0		# $t2 = a[0]
 	
 copy_for:	beq	$s3, $s2, exit_sorti	# Loop for $a1 (array size) times
 		### BEGIN FOR LOOP ###
@@ -124,14 +127,40 @@ copy_for:	beq	$s3, $s2, exit_sorti	# Loop for $a1 (array size) times
 		addi 	$s3, $s3, 1		# i=i+1
 		j	copy_for		# Jump back to loop top
 
-exit_sorti:	sll	$t1, $a1, 2		# $t1=n*4
+exit_sorti:	move 	$ra, $s4		# Restore $RA
+		sll	$t1, $a1, 2		# $t1=n*4
 		add	$sp, $sp, $t1		# Remove b[] from the stack
 		lw	$s0, 0($sp)		# restore s0
 		lw	$s1, 4($sp)		# restore s1
 		lw	$s2, 8($sp)		# restore s2
 		lw	$s3, 12($sp)		# restore s3
-		add 	$sp, $sp, 16		
+		lw	$s4, 16($sp)		# restore s4
+		add 	$sp, $sp, 20		
 		jr 	$ra			# Retrun to main Program
+		
+
+
+### Binary Search ###
+# $a0 contains a[]
+# $a1 contains 'lenght'
+# $a2 contains 'elem'
+
+# $t0 is low
+# $t1 is high
+# $t2 is mid
+bin_search:	addi $t0, $t0, -1	# low = -1
+		move $t1, $a1		# high = lenght
+		move $t2, $zero
+
+bin_while: 	sub $t4, $t1, 1 	# $t4 = high -1
+		bge $t0, $t4, bin_return
+		
+		add $t2, $t0, $t1
+		sra $t2, $t2, 1
+		
+		j bin_while
+	
+bin_return: 	jr $ra	
 
 ### Insert
 ins:		move	$t0, $a1		# Assign length to temporary (assignment j = length)
