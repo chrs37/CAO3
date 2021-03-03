@@ -65,29 +65,51 @@ exit_print:	add	$sp, $sp, $s0		# elimination of the stack frame
 		li	$v0, 10			# EXIT
 		syscall				#
 
+# Register Usage
+# $s0 location of a[0] on the stack
+# $s1 location of b[0] on the stack
+# $s2 size n
+# $s3 counter for the array (i)
+isort:		sub 	$sp, $sp, 16
+		sw 	$s0, 0($sp) 	# Save s0 to the stack
+		sw 	$s1, 4($sp) 	# Save s1 to the stack
+		sw 	$s2, 8($sp) 	# Save s2 to the stack
+		sw 	$s3, 12($sp) 	# Save s3 to the stack
 
-isort:		move	$t0, $zero		# i = 0
-		sll	$t1, $a1, 2		# $t0=n*4
-		sub 	$t1, $a0, $t1		# $t1=$sp-n*4	$t1 is the location of b[i]
-		# other setup
-isort_for:	beq	$t0, $a1, copy_array	# Loop for $a1 (array size) times
+		move 	$s0, $a0	# Store a[0] in $s0
+		move 	$s2, $a1	# Store n in $s2
+		move	$s3, $zero	# i = 0
+				
+		sll	$t0, $s2, 2	# $t0=n*4
+		sub	$sp, $sp, $t0	# Decrease the stack pointer by n*4
+		move 	$s1, $sp	# $s1=$sp, thus $s1 is b[0]	
+		### END OF SETUP ###
+
+		# TEST CODE #
+		move 	$t1, $s1		# $t1 = b[0] 
+
+isort_for:	beq	$s3, $s2, isort_for_end 	# Loop for n ($s2) times
 		### BEGIN FOR LOOP ###
 		
+		# TEST CODE #		
+		sw	$s3, 0($t1)		# b[i] = $s3
+		addi 	$t1, $t1, 4		#b[i+1]	
 			# int position = binarySearch (b, i, a[i]);
 			# insert (b, i, a[i], position);
 		
 		### END FOR LOOP ##
-		addi 	$t0, $t0, 1		# i=i+1
+		addi 	$s3, $s3, 1		# i=i+1
 		j	isort_for		# Jump back to loop top
 
+isort_for_end: j copy_array	
 		
-# Copys array b[] to a[]		
-copy_array:	move	$t0, $zero		# i = 0
-		addi 	$t2, $a0, 0		#$t2 = a[i]; $t1 = b[i]
+### The routine copy_array copies the content of array b[] (in $s1) to a[] (in $s0) ###	
+copy_array:	move	$s3, $zero		# i = 0
+		move 	$t1, $s1		# $t1 = b[0]
+		move 	$t2, $s0		# $t1 = b[0]
 	
-copy_for:	beq	$t0, $a1, exit_sorti	# Loop for $a1 (array size) times
+copy_for:	beq	$s3, $s2, exit_sorti	# Loop for $a1 (array size) times
 		### BEGIN FOR LOOP ###
-		
 		
 		lw	$t3, 0($t1)		# $t3 = b[i]
 		sw	$t3, 0($t2)		# a[i] = $t3
@@ -96,8 +118,15 @@ copy_for:	beq	$t0, $a1, exit_sorti	# Loop for $a1 (array size) times
 		addi 	$t2, $t2, 4		#a[i+1]
 		
 		### END FOR LOOP ##
-		addi 	$t0, $t0, 1		# i=i+1
+		addi 	$s3, $s3, 1		# i=i+1
 		j	copy_for		# Jump back to loop top
 
-exit_sorti:	jr 	$ra			# Retrun to main Program
+exit_sorti:	sll	$t1, $a1, 2		# $t1=n*4
+		add	$sp, $sp, $t1		# Remove b[] from the stack
+		lw	$s0, 0($sp)		# restore s0
+		lw	$s1, 4($sp)		# restore s1
+		lw	$s2, 8($sp)		# restore s2
+		lw	$s3, 12($sp)		# restore s3
+		add 	$sp, $sp, 16		
+		jr 	$ra			# Retrun to main Program
 		
