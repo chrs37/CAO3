@@ -89,17 +89,21 @@ isort:		sub 	$sp, $sp, 20
 		### END OF SETUP ###
 
 		# TEST CODE #
-		move 	$t6, $s1		# $t1 = b[0] 
+		#move 	$t6, $s1		# $t1 = b[0] 
 
 isort_for:	beq	$s3, $s2, isort_for_end 	# Loop for n ($s2) times
 		### BEGIN FOR LOOP ###
 		
 		# TEST CODE #
-		#sw	$s3, 0($t1)		# b[i] = $s3
-		#addi 	$t1, $t1, 4		#b[i+1]	
-		addi 	$a2, $zero, 5
-		addi 	$a3, $zero, 2
-		jal	ins	
+
+		move 	$a0, $s0
+		move 	$a1, $s2
+		addi	$a2, $zero, 3
+		jal	bin_search
+		
+		#addi 	$a2, $zero, 5
+		#addi 	$a3, $zero, 2
+		#jal	ins	
 			# int position = binarySearch (b, i, a[i]);
 			# insert (b, i, a[i], position);
 		
@@ -145,22 +149,35 @@ exit_sorti:	move 	$ra, $s4		# Restore $RA
 # $a1 contains 'lenght'
 # $a2 contains 'elem'
 
+# $v0 is the return register
+
 # $t0 is low
 # $t1 is high
 # $t2 is mid
-bin_search:	addi $t0, $t0, -1	# low = -1
-		move $t1, $a1		# high = lenght
-		move $t2, $zero
+# $t3 is a[mid]
+bin_search:	addi 	$t0, $zero, -1		# low = -1
+		move 	$t1, $a1		# high = lenght
+		move 	$t2, $zero
 
-bin_while: 	sub $t4, $t1, 1 	# $t4 = high -1
-		bge $t0, $t4, bin_return
+bin_while: 	sub 	$t4, $t1, 1 		# $t4 = high -1
+		bge 	$t0, $t4, bin_return	# while (low < high - 1 )
 		
-		add $t2, $t0, $t1
-		sra $t2, $t2, 1
+		add 	$t2, $t0, $t1		# mid = low + high
+		sra 	$t2, $t2, 1		# mid = mid/2
 		
-		j bin_while
+		add 	$t3, $zero, $t2		# $t3 = mid
+		sll 	$t3, $t3, 2		# $t3 = mid*4 (to addres space)
+		add 	$t3, $t3, $a0		# $t3 = &a[mid]
+		lw  	$t3, 0($t3)		# $t3 = a[mid]
+		
+		blt 	$t3, $a2, bin_less 	# If a[mid] ($t3) is less than elem ($a2) jump
+		move	$t1, $t2 		# high = mid
+		j 	bin_while
+bin_less:	move	$t0, $t2		# low = mid		
+		j 	bin_while
 	
-bin_return: 	jr $ra	
+bin_return: 	move 	$v0, $t2
+		jr 	$ra	
 
 ### Insert
 ins:		move	$t0, $a1		# Assign length to temporary (assignment j = length)
