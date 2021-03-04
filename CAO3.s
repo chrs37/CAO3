@@ -88,24 +88,32 @@ isort:		sub 	$sp, $sp, 20
 		move 	$s4, $ra
 		### END OF SETUP ###
 
-		# TEST CODE #
-		#move 	$t6, $s1		# $t1 = b[0] 
-
 isort_for:	beq	$s3, $s2, isort_for_end 	# Loop for n ($s2) times
 		### BEGIN FOR LOOP ###
 		
-		# TEST CODE #
-
-		move 	$a0, $s0
-		move 	$a1, $s2
-		addi	$a2, $zero, 3
+		### int position = binarySearch (b, i, a[i]); ###
+		move 	$a0, $s1		# $a0 is b[]
+		move 	$a1, $s3		# $a1 = i = $s3	
+		add 	$a2, $zero, $s3		# $a2 = i
+		sll 	$a2, $a2, 2		# $a2 = i*4 (to addres space)
+		add 	$a2, $a2, $s0		# $a2 = &a[i]
+		lw  	$a2, 0($a2)		# $a2 = a[i]
+		
 		jal	bin_search
 		
-		#addi 	$a2, $zero, 5
-		#addi 	$a3, $zero, 2
-		#jal	ins	
-			# int position = binarySearch (b, i, a[i]);
-			# insert (b, i, a[i], position);
+		### void insert (int a[], int length, int elem, int i) ###
+		move 	$a0, $s1		# $a0 is b[]
+		move 	$a1, $s3		# $a1 = i = $s3	
+		add 	$a2, $zero, $s3		# $a2 = i
+		sll 	$a2, $a2, 2		# $a2 = i*4 (to addres space)
+		add 	$a2, $a2, $s0		# $a2 = &a[i]
+		lw  	$a2, 0($a2)		# $a2 = a[i]
+		move 	$a3, $v0
+		
+		jal	ins	
+		
+		# int position = binarySearch (b, i, a[i]);
+		# insert (b, i, a[i], position);
 		
 		### END FOR LOOP ##
 		addi 	$s3, $s3, 1		# i=i+1
@@ -132,7 +140,7 @@ copy_for:	beq	$s3, $s2, exit_sorti	# Loop for $a1 (array size) times
 		j	copy_for		# Jump back to loop top
 
 exit_sorti:	move 	$ra, $s4		# Restore $RA
-		sll	$t1, $a1, 2		# $t1=n*4
+		sll	$t1, $s2, 2		# $t1=n*4
 		add	$sp, $sp, $t1		# Remove b[] from the stack
 		lw	$s0, 0($sp)		# restore s0
 		lw	$s1, 4($sp)		# restore s1
@@ -163,7 +171,7 @@ bin_while: 	sub 	$t4, $t1, 1 		# $t4 = high -1
 		bge 	$t0, $t4, bin_return	# while (low < high - 1 )
 		
 		add 	$t2, $t0, $t1		# mid = low + high
-		sra 	$t2, $t2, 1		# mid = mid/2
+		srl 	$t2, $t2, 1		# mid = mid/2
 		
 		add 	$t3, $zero, $t2		# $t3 = mid
 		sll 	$t3, $t3, 2		# $t3 = mid*4 (to addres space)
@@ -176,7 +184,7 @@ bin_while: 	sub 	$t4, $t1, 1 		# $t4 = high -1
 bin_less:	move	$t0, $t2		# low = mid		
 		j 	bin_while
 	
-bin_return: 	move 	$v0, $t2
+bin_return: 	move 	$v0, $t1
 		jr 	$ra	
 
 ### Insert
@@ -184,11 +192,13 @@ ins:		move	$t0, $a1		# Assign length to temporary (assignment j = length)
 		subi	$t0, $t0,1		# j = j - 1
 		
 ins_for:	blt	$t0, $a3, ins_for_exit	#Brench if greater or equal then jump to end loop
-		subi	$t0, $t0, 1		#j--
+
 		sll	$t1, $t0, 2		#Determine adress in memory of a[j]
 		add	$t1, $a0, $t1		
 		lw	$t2, 0($t1)		#Load content of memory place a[j] into t2
 		sw	$t2, 4($t1)		#Set memory of a[j+1] with content of t2 (thus a[k=j])
+		
+		subi	$t0, $t0, 1		#j--
 		j	ins_for
 		
 ins_for_exit:	sll	$t1, $a3, 2		#Determine memory address of a[i]
