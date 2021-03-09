@@ -193,16 +193,16 @@ ins:		move	$t0, $a1		# Assign length to temporary (assignment j = length)
 		
 ins_for:	blt	$t0, $a3, ins_for_exit	#Brench if greater or equal then jump to end loop
 
-		sll	$t1, $t0, 2		#Determine adress in memory of a[j]
-		add	$t1, $a0, $t1		
+		sll	$t1, $t0, 2		#Determine offset in memory
+		add	$t1, $a0, $t1		#Determine adress in memory
 		lw	$t2, 0($t1)		#Load content of memory place a[j] into t2
 		sw	$t2, 4($t1)		#Set memory of a[j+1] with content of t2 (thus a[k=j])
 		
 		subi	$t0, $t0, 1		#j--
-		j	ins_for
+		j	ins_for			#Jump to front of loop
 		
-ins_for_exit:	sll	$t1, $a3, 2		#Determine memory address of a[i]
-		add	$t1, $t1, $a0
+ins_for_exit:	sll	$t1, $a3, 2		#Determine offset in memory
+		add	$t1, $t1, $a0		#Determine memory address of a[i]
 		sw	$a2, 0($t1)		#Load elem into memory address
 		jr	$ra			#return to caller
 
